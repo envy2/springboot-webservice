@@ -1,4 +1,4 @@
-# Springboot Webservice (2020.07.20 ~ )
+# Springboot Webservice (2020.07.29 ~ )
 AWS 와 Springboot를 사용하여 웹 서비스 구현
 
 ## Terminal
@@ -40,4 +40,14 @@ gradlew wrapper --gradle-version 4.10.2
     1. CoreMatchers와 달리 추가적으로 라이브러리가 필요하지 않다(Junit의 asserThat을 쓰게 되면 is()와 같이 CoreMatchers 라이브러리가 필요)
     2. 자동완성 지원(IDE에서는 CoreMatchers와 같은 Matcher 라이브러리의 자동완성 지원이 약함)
 
-
+* JPA
+    1. 자바 표준 ORM(Object Relational Mapping)
+    2. 기능과 속성을 관리하는 객체지향 프로그래밍 언어와 데이터를 저장하는 방법에 초점이 맞춰진 관계형 데이터베이스 간의 패러다임 불일치를 해결
+    3. JPA 는 인터페이스다. 따라서 JPA를 사용하기 위해서는 구현체(Hibernate,EclipseLink 등)가 필요
+    
+* Spring Data JPA
+    1. 구현체들을 좀 더 쉽게 사용하고자 추상화시킨 모듈
+    2. 구현체를 쉽게 교체할 수 있다.
+    3. 저장소를 쉽게 교체할 수 있다. (MongoDB로 교체가 필요하다면 Spring Data JPA 에서 Spring Data MongoDB로 의존성만 교체하면 됨)
+    4. Spring Data의 하위 프로젝트들은 기본적인 CRUD의 인터페이스가 같기 때문에 가능(Spring Data JPA, Spring Data Redis, Spring Data MongoDB 등 save(),findAll,findOne() 등을 인터페이스로 가지고 있음)
+    
