@@ -1,6 +1,9 @@
 # Springboot Webservice (2020.07.20 ~ )
 AWS 와 Springboot를 사용하여 웹 서비스 구현
 
+## Terminal
+gradlew wrapper --gradle-version 4.10.2
+
 ## Library
 * JUnit4
 * Lombok
@@ -32,3 +35,9 @@ AWS 와 Springboot를 사용하여 웹 서비스 구현
     2. 내장 WAS란 별도로 외부에 WAS를 두지 않고 애플리케이션을 실행할 때 내부에서 WAS를 실행하는 것
     3. 서버에 톰캣을 설치할 필요가 없고, 스프링 부트로 만들어진 Jar 파일로 실행
     4. 이로 인해 '언제 어디서나 같은 환경에서 스프링 부트를 배포' 할 수 있다.
+    
+* JUnit과 비교하여 assertj의 장점
+    1. CoreMatchers와 달리 추가적으로 라이브러리가 필요하지 않다(Junit의 asserThat을 쓰게 되면 is()와 같이 CoreMatchers 라이브러리가 필요)
+    2. 자동완성 지원(IDE에서는 CoreMatchers와 같은 Matcher 라이브러리의 자동완성 지원이 약함)
+
+
