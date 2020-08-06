@@ -10,6 +10,11 @@ gradlew wrapper --gradle-version 4.10.2
 * JPA
 * h2
 
+## application.properties
+* src/main/resources 디렉토리 아래에 생성
+    1. spring.jpa.show_sql = true (테스트 실행 시 콘솔에서 쿼리 로그를 확인 할 수 있다)
+    2. spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQL5Dialect (출력되는 쿼리 로그가 MySQL 버전으로 변경된다)
+    
 ## 개발 정리
 * 테스트 코드
     1. TDD
@@ -55,7 +60,13 @@ gradlew wrapper --gradle-version 4.10.2
     2. 구현체를 쉽게 교체할 수 있다.
     3. 저장소를 쉽게 교체할 수 있다. (MongoDB로 교체가 필요하다면 Spring Data JPA 에서 Spring Data MongoDB로 의존성만 교체하면 됨)
     4. Spring Data의 하위 프로젝트들은 기본적인 CRUD의 인터페이스가 같기 때문에 가능(Spring Data JPA, Spring Data Redis, Spring Data MongoDB 등 save(),findAll,findOne() 등을 인터페이스로 가지고 있음)
-    
+  
+* @RequiredArgsConstructor
+    1. 선언된 모든 final 필드가 포함된 생성자를 생성해 준다.
+    2. final이 없는 필드는 생성자에 포함되지 않는다.
+    3. 스프링에서 Bean을 주입받는 3가지 방법(@Autowired, setter, 생성자) 중 가장 권장하는 방식인 생성자로 주입 방식과 동일한 효과를 볼 수 있다.
+    4. 생성자를 직접 쓰지 않고 롬복 어노테이션을 사용하는 이유는 해당 클래스의 의존성 관계가 변경될 때마다 생성자 코드를 계속해서 수정할 필요가 없기 때문이다.
+      
 * @Entity
     1. 테이블과 링크될 클래스임을 나타낸다.
     2. 기본값으로 클래스의 카멜케이스 이름을 언더스코어 네이밍(_)으로 테이블 이름을 매칭한다. (ex. SalesManger.java -> sales_manager table)
@@ -81,14 +92,36 @@ gradlew wrapper --gradle-version 4.10.2
     2. 보통은 배포 전 전체 테스트를 수행할 때 테스트간 데이터 침범을 막기 위해 사용한다.
     3. 여러 테스트가 동시에 수행되면 테스트용 데이터베이스인 H2에 데이터가 그대로 남아 있어 다음 테스트 실행 시 테스트가 실패할 수 있습니다.
     
-* spring.jpa.show_sql = true
-    1. src/main/resources 디렉토리 아래에 application.properties 파일을 생성한 후 위의 옵션을 추가하면 테스트 실행 시 콘솔에서 쿼리 로그를 확인 할 수 있다.
-    2. spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQL5Dialect 를 application.properties 에 추가하면 출력되는 쿼리 로그가 MySQL 버전으로 변경된다.
-    
 * API를 만들기 위한 클래스
     1. Request 데이터를 받을 Dto
     2. API 요청을 받을 Controller
     3. 트랜잭션, 도메인 기능 간의 순서를 보장하는 Service
+    
+* Spring 웹 계층
+    1. Web Layer
+        1. 흔히 사용되는 컨트롤러와 JSP/Freemarker 등의 뷰 템플릿 영역
+        2. 이외에도 필터, 인터셉터, 컨트롤러 어드바이스 등 외부 요청과 응답에 대한 전반적인 영역
+    2. Service Layer
+        1. @Service에 사용되는 서비스 영역
+        2. 일반적으로 Controller와 Dao의 중간 영역
+        3. @Transactional이 사용되는 영역
+    3. Repository Layer
+        1. Database와 같이 데이터 저장소에 접근하는 영역
+        2. 기존 개발에 쓰이던 Data Access Object의 영역
+    4. Dtos
+        1. Dto는 계층간에 데이터 교환을 위한 객체이며 이들을 다루는 영역
+    5. Domain Model
+        1. 도메인이라 불리는 개발 대상을 모든 사람이 동일한 관점에서 이해할 수 있고 공유할 수 있도록 단순화 시킨 것을 도메인 모델이라고 한다.
+        2. 예를 들면 택시 앱에서 배차,탑승,요금 등이 모두 도메인이 될 수 있다.
+        3. @Entity가 사용된 영역 역시 도메인 모델
+        4. 다만, 무조건 데이터베이스의 테이블과 관계가 있는 것은 아니다 (VO처럼 값 객체들도 이 영역에 해당)
+
+* Entity 클래스가 있음에도 Dto를 만드는 이유
+    1. Entity 클래스는 DB와 직접적으로 연결되는 핵심 클래스
+    2. 이로 인해 Entity가 변경될 경우 다른 로직들이 큰 영향을 받는다.
+    3. 따라서 View Layer와 DB Layer의 역할을 명확하게 분리하기 위해 Dto를 만든다.
+    4. 자세한 설명 참조(https://gmlwjd9405.github.io/2018/12/25/difference-dao-dto-entity.html)
+    
     
 ## 오류 및 해결
 error: variable name not initialized in the default constructor private final String name (gradle 버전 문제, 5 -> 4로 다운 그레이드)
