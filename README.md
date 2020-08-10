@@ -15,6 +15,46 @@ gradlew wrapper --gradle-version 4.10.2
     1. spring.jpa.show_sql = true (테스트 실행 시 콘솔에서 쿼리 로그를 확인 할 수 있다)
     2. spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQL5Dialect (출력되는 쿼리 로그가 MySQL 버전으로 변경된다)
     
+## Spring Boot Annotation
+주석이라는 사전적 의미를 가지고있으며 , 자바 코드에 주석처럼 사용하여 컴파일 또는 런타임에서 해석된다.
+          
+    * @SpringBootApplication
+        1. @SpringBootApplication으로 인해 스프링 부트의 자동 설정, 스프링 Bean 읽기와 생성을 모두 자동으로 설정
+        2. @SpringBootApplication이 있는 위치부터 설정을 읽어가기 때문에 이 클래스는 항상 프로젝트의 최상단에 위치해야만 한다.
+    
+    * @RequiredArgsConstructor
+        1. 선언된 모든 final 필드가 포함된 생성자를 생성해 준다.
+        2. final이 없는 필드는 생성자에 포함되지 않는다.
+        3. 스프링에서 Bean을 주입받는 3가지 방법(@Autowired, setter, 생성자) 중 가장 권장하는 방식인 생성자로 주입 방식과 동일한 효과를 볼 수 있다.
+        4. 생성자를 직접 쓰지 않고 롬복 어노테이션을 사용하는 이유는 해당 클래스의 의존성 관계가 변경될 때마다 생성자 코드를 계속해서 수정할 필요가 없기 때문이다.
+          
+    * @Entity
+        1. 테이블과 링크될 클래스임을 나타낸다.
+        2. 기본값으로 클래스의 카멜케이스 이름을 언더스코어 네이밍(_)으로 테이블 이름을 매칭한다. (ex. SalesManger.java -> sales_manager table)
+        3. 가급적이면 Entity의 PK는 Long타입의 Auto_increment가 좋다(MySQL 기준 bigint 타입이 됨)
+        4. 주민등록번호 또는 여러키를 조합한 복합키를 PK로 잡을 경우 난감한 상황이 발생할 수 있다.
+        5. 무분별한 Setter 메소드 생성 금지 (해당 클래스의 인스턴스 값들이 언제 변하는 지 구분하기 어려워 차후 기능 변경 시 복잡해질 수 있다)
+        
+    * @GeneragtedValue
+        1. PK의 생성 규칙을 나타낸다 (PK는 @Id)
+        2. 스프링부트 2.0에서는 GenerationType.IDENTITY 옵션을 추가해야만 auto_increment가 적용된다.
+        
+    * @Column
+        1. 테이블의 칼럼을 나타내며 굳이 선언하지 않더라도 해당 클래스의 필드는 모두 칼럼이 된다.
+        2. 사용하는 이유는 기본값 외에 추가로 변경이 필요한 옵션이 있으면 사용한다.
+        3. 문자열의 경우 VARCHAR(255) 기본값인데 사이즈를 500으로 늘리고 싶거나 타입을 TEXT로 변경하고 싶을때 사용된다.
+    
+    * @NoArgsConstructor
+        1. 기본 생성자 자동 추가
+        2. pulbic ~~(){} 와 같은 효과
+        
+    * @After
+        1. JUnit에서 단위 테스트가 끝날 때마다 수행되는 메소드를 지정
+        2. 보통은 배포 전 전체 테스트를 수행할 때 테스트간 데이터 침범을 막기 위해 사용한다.
+        3. 여러 테스트가 동시에 수행되면 테스트용 데이터베이스인 H2에 데이터가 그대로 남아 있어 다음 테스트 실행 시 테스트가 실패할 수 있습니다.
+        
+
+
 ## 개발 정리
 * 테스트 코드
     1. TDD
@@ -33,13 +73,6 @@ gradlew wrapper --gradle-version 4.10.2
     3. 기능에 대한 불확실성을 감소시킬 수 있습니다.
     4. 시스템에 대한 실제 문서를 제공합니다. 즉, 단위 테스트 자체가 문서로 사용할 수 있습니다.
     
-* 어노테이션
-    1.주석이라는 사전적 의미를 가지고있으며 , 자바 코드에 주석처럼 사용하여 컴파일 또는 런타임에서 해석된다.
-      
-* @SpringBootApplication
-    1. @SpringBootApplication으로 인해 스프링 부트의 자동 설정, 스프링 Bean 읽기와 생성을 모두 자동으로 설정
-    2. @SpringBootApplication이 있는 위치부터 설정을 읽어가기 때문에 이 클래스는 항상 프로젝트의 최상단에 위치해야만 한다.
-
 * SpringApplication.run
     1. main 메소드에서 실행되는 것으로 내장 WAS(Web Application Server)를 실행
     2. 내장 WAS란 별도로 외부에 WAS를 두지 않고 애플리케이션을 실행할 때 내부에서 WAS를 실행하는 것
@@ -61,37 +94,7 @@ gradlew wrapper --gradle-version 4.10.2
     3. 저장소를 쉽게 교체할 수 있다. (MongoDB로 교체가 필요하다면 Spring Data JPA 에서 Spring Data MongoDB로 의존성만 교체하면 됨)
     4. Spring Data의 하위 프로젝트들은 기본적인 CRUD의 인터페이스가 같기 때문에 가능(Spring Data JPA, Spring Data Redis, Spring Data MongoDB 등 save(),findAll,findOne() 등을 인터페이스로 가지고 있음)
   
-* @RequiredArgsConstructor
-    1. 선언된 모든 final 필드가 포함된 생성자를 생성해 준다.
-    2. final이 없는 필드는 생성자에 포함되지 않는다.
-    3. 스프링에서 Bean을 주입받는 3가지 방법(@Autowired, setter, 생성자) 중 가장 권장하는 방식인 생성자로 주입 방식과 동일한 효과를 볼 수 있다.
-    4. 생성자를 직접 쓰지 않고 롬복 어노테이션을 사용하는 이유는 해당 클래스의 의존성 관계가 변경될 때마다 생성자 코드를 계속해서 수정할 필요가 없기 때문이다.
-      
-* @Entity
-    1. 테이블과 링크될 클래스임을 나타낸다.
-    2. 기본값으로 클래스의 카멜케이스 이름을 언더스코어 네이밍(_)으로 테이블 이름을 매칭한다. (ex. SalesManger.java -> sales_manager table)
-    3. 가급적이면 Entity의 PK는 Long타입의 Auto_increment가 좋다(MySQL 기준 bigint 타입이 됨)
-    4. 주민등록번호 또는 여러키를 조합한 복합키를 PK로 잡을 경우 난감한 상황이 발생할 수 있다.
-    5. 무분별한 Setter 메소드 생성 금지 (해당 클래스의 인스턴스 값들이 언제 변하는 지 구분하기 어려워 차후 기능 변경 시 복잡해질 수 있다)
-    
-* @GeneragtedValue
-    1. PK의 생성 규칙을 나타낸다 (PK는 @Id)
-    2. 스프링부트 2.0에서는 GenerationType.IDENTITY 옵션을 추가해야만 auto_increment가 적용된다.
-    
-* @Column
-    1. 테이블의 칼럼을 나타내며 굳이 선언하지 않더라도 해당 클래스의 필드는 모두 칼럼이 된다.
-    2. 사용하는 이유는 기본값 외에 추가로 변경이 필요한 옵션이 있으면 사용한다.
-    3. 문자열의 경우 VARCHAR(255) 기본값인데 사이즈를 500으로 늘리고 싶거나 타입을 TEXT로 변경하고 싶을때 사용된다.
 
-* @NoArgsConstructor
-    1. 기본 생성자 자동 추가
-    2. pulbic ~~(){} 와 같은 효과
-    
-* @After
-    1. JUnit에서 단위 테스트가 끝날 때마다 수행되는 메소드를 지정
-    2. 보통은 배포 전 전체 테스트를 수행할 때 테스트간 데이터 침범을 막기 위해 사용한다.
-    3. 여러 테스트가 동시에 수행되면 테스트용 데이터베이스인 H2에 데이터가 그대로 남아 있어 다음 테스트 실행 시 테스트가 실패할 수 있습니다.
-    
 * API를 만들기 위한 클래스
     1. Request 데이터를 받을 Dto
     2. API 요청을 받을 Controller
