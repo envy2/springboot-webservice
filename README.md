@@ -14,6 +14,7 @@ gradlew wrapper --gradle-version 4.10.2
 * src/main/resources 디렉토리 아래에 생성
     1. spring.jpa.show_sql = true (테스트 실행 시 콘솔에서 쿼리 로그를 확인 할 수 있다)
     2. spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQL5Dialect (출력되는 쿼리 로그가 MySQL 버전으로 변경된다)
+    3. spring.h2.console.enabled = true (웹 콘솔 옵션)
     
 ## Spring Boot Annotation
 주석이라는 사전적 의미를 가지고있으며 , 자바 코드에 주석처럼 사용하여 컴파일 또는 런타임에서 해석된다.
@@ -53,7 +54,20 @@ gradlew wrapper --gradle-version 4.10.2
         2. 보통은 배포 전 전체 테스트를 수행할 때 테스트간 데이터 침범을 막기 위해 사용한다.
         3. 여러 테스트가 동시에 수행되면 테스트용 데이터베이스인 H2에 데이터가 그대로 남아 있어 다음 테스트 실행 시 테스트가 실패할 수 있습니다.
         
+    * @MappedSuperclass
+        * JPA Entity 클래스들이 BaseTimeEntity를 상속할 경우 필드들(createdDate, modifiedDate)도 칼럼으로 인식하도록 합니다.
+    
+    * @EntityListeners(AuditingEntityListener.class)
+        * BaseTimeEntity 클래스에 Auditing 기능을 포함시킵니다.
+    
+    * @CreatedDate
+        * Entity가 생성되어 저장될 때 시간이 자동 저장됩니다.
+        
+    * @LastModifiedDate
+        * 조회한 Entity의 값을 변경할 때 시간이 자동 저장됩니다.
 
+    * @EnableJpaAuditing
+        * 메인 클래스의 위에서 설정되어 JPA Auditing 어노테이션들을 모두 활성화 시킵니다.
 
 ## 개발 정리
 * 테스트 코드
@@ -125,6 +139,14 @@ gradlew wrapper --gradle-version 4.10.2
     3. 따라서 View Layer와 DB Layer의 역할을 명확하게 분리하기 위해 Dto를 만든다.
     4. 자세한 설명 참조(https://gmlwjd9405.github.io/2018/12/25/difference-dao-dto-entity.html)
     
+* JPA Auditing
+    1. 보통 엔티티에서 해당 데이터의 생성시간과 수정시간을 포함한다. (차후 유지보수에 매우 중요)
+    2. 그러나 매번 DB에 삽입 하기전 날짜 데이터를 등록/수정하는 코드가 여기저기 들어가게 되면서 코드가 지저분해지는 것을 해결하기 위해 JPA Auditing을 사용한다
     
+* LocalDate
+    1. Java8에서 나온 날짜타입으로 기존의 Date, Calendar클래스의 문제를 해결함
+    2. Date의 문제점(불변객체가 아님, Calendar의 월(Month) 값)
+    3. 스프링 부트 1.x에서는 별도의 Hibernate 5.2.10 버전 이상을 사용하도록 설정(2.x는 자동설정)
+
 ## 오류 및 해결
 error: variable name not initialized in the default constructor private final String name (gradle 버전 문제, 5 -> 4로 다운 그레이드)
