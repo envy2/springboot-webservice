@@ -4,11 +4,12 @@ AWS 와 Springboot를 사용하여 웹 서비스 구현
 ## Terminal
 gradlew wrapper --gradle-version 4.10.2
 
-## Library
+## Dependency
 * JUnit4
 * Lombok
 * JPA
 * h2
+* mustache
 
 ## application.properties
 * src/main/resources 디렉토리 아래에 생성
@@ -148,5 +149,30 @@ gradlew wrapper --gradle-version 4.10.2
     2. Date의 문제점(불변객체가 아님, Calendar의 월(Month) 값)
     3. 스프링 부트 1.x에서는 별도의 Hibernate 5.2.10 버전 이상을 사용하도록 설정(2.x는 자동설정)
 
+* 템플릿 엔진
+    * 지정된 템플릿 양식과 데이터가 합쳐져 HTML 문서를 출력하는 소프트웨어(웹 사이트의 화면을 어떤 형태로 만들지 도와주는 양식)
+    * 서버 사이드 템플릿 엔진
+        1. 서버에서 Java 코드로 문자열을 만든 뒤 이 문자열을 HTML로 변환하여 브라우저로 전달
+        2. 즉 서버에서 화면을 만들어 브라우저에게 전달한다.
+        3. Spring + JSP, Freemarker 등
+    * 클라이언트 사이드 템플릿 엔진
+        1. 브라우저 위에서 작동(클라이언트에서 조립)
+        2. 서버에서 Json 또는 Xml 형식의 데이터를 클라이언트에게 전달만 함
+        3. SPA(Single Page Application) = Vue.js, React.js 등
+        
+* 머스테치(mustache)
+    1. 수많은 언어를 지원하는 가장 심플한 템플릿 엔진
+    2. Mustache.js와 Mustache.java 2가지가 있어, 하나의 문법으로 클라이언트/서버 템플릿을 모두 사용 가능
+    3. 인텔리제이 커뮤니티 버전에서도 플러그인 사용 가능
+    4. 파일의 기본 위치는 src/main/resources/templates
+    5. 머스테치 스타터가 컨트롤러에서 문자열을 반환할 때 앞의 경로와 파일 확장자를 자동으로 지정
+    
+* header 와 footer
+    1. HTML은 위에서부터 코드가 실행되기 때문에 head가 다 실행되고 나서 body가 실행된다.
+    2. 즉 head가 다 불러지지 않으면 사용자 쪽에선 백지 화면만 노출
+    3. 따라서 js의 용량이 크면 body부분의 실행이 늦어지기 때문에 js는 body하단에 두어 화면이 다 그려진 뒤 호출하는 것이 좋다.
+    4. 반면 css는 화면을 그리는 역할이므로 head에서 불러 css가 적용된 화면을 볼 수 있게 한다.
+    5. 추가로 bootstrap.js의 경우 제이쿼리가 꼭 있어야만 하기 때문에 부트스트랩보다 먼저 호출되도록 코드를 작성한다.    
+    
 ## 오류 및 해결
 error: variable name not initialized in the default constructor private final String name (gradle 버전 문제, 5 -> 4로 다운 그레이드)
