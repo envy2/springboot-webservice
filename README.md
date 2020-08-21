@@ -1,5 +1,5 @@
 # Springboot Webservice (2020.07.29 ~ )
-AWS 와 Springboot를 사용하여 웹 서비스 구현
+스프링 부트와 AWS로 혼자 구현하는 웹 서비스(책 따라하기)
 
 ## Terminal
 gradlew wrapper --gradle-version 4.10.2
