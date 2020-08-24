@@ -10,13 +10,17 @@ gradlew wrapper --gradle-version 4.10.2
 * JPA
 * h2
 * mustache
+* oauth2
 
 ## application.properties
 * src/main/resources 디렉토리 아래에 생성
     1. spring.jpa.show_sql = true (테스트 실행 시 콘솔에서 쿼리 로그를 확인 할 수 있다)
     2. spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQL5Dialect (출력되는 쿼리 로그가 MySQL 버전으로 변경된다)
     3. spring.h2.console.enabled = true (웹 콘솔 옵션)
-    
+    4. spring.profiles.include = xxx (appication-xxx.properties 에서 적용한 값을 프로젝트에 설정한다)
+    5. spring.security.oauth2.client.registration.google.scope = profile,email (기본 값은 profile,email,openid 여기서 openid가 적용 될 경우 OpenId Provider인 서비스 구글과 그렇지 않은 네이버 등 두가지로 나눠서 Oauth2Service를 만들어야 하기 때문에 하나로 만들기 위해 openid scope를 빼고 등록한다)
+
+
 ## Spring Boot Annotation
 주석이라는 사전적 의미를 가지고있으며 , 자바 코드에 주석처럼 사용하여 컴파일 또는 런타임에서 해석된다.
           
@@ -70,6 +74,21 @@ gradlew wrapper --gradle-version 4.10.2
     * @EnableJpaAuditing
         * 메인 클래스의 위에서 설정되어 JPA Auditing 어노테이션들을 모두 활성화 시킵니다.
 
+    * @Transactional
+        1. 스프링에서 지원하는 선언적 트랜잭션(데이터베이스의 상태를 변경시키는 작업 또는 한번에 수행되어야 할 작업)
+        2. readOnly 읽기 전용으로 설정(트랜잭션의 범위는 유지하되, 조회 기능만 남겨두어 조회 속도가 개선되기 때문에 등록,수정,삭제 기능이 전혀 없는 서비스 메소드에서 사용하는 것이 좋다)
+
+    * @Enumerated(EnumType.STRING)
+        1. JPA로 데이터베이스로 저장할 때 Enum 값을 어떤 형태로 저장할지를 결정합니다.
+        2. 기본적으로는 int로 된 숫자가 저장됩니다.
+        3. 숫자로 저장되면 데이터베이스로 확인할 때 그 값이 무슨 코드를 의미하는지 알 수가 없습니다.
+        4. 그래서 문자열(EnumType.STRING)로 저장될 수 있도록 선언합니다.
+    
+    * @EnableWebSecurity
+        * 스프링 시큐리티 설정들을 활성화 시켜줍니다.
+     
+    
+    
 ## 개발 정리
 * 테스트 코드
     1. TDD
@@ -173,6 +192,31 @@ gradlew wrapper --gradle-version 4.10.2
     3. 따라서 js의 용량이 크면 body부분의 실행이 늦어지기 때문에 js는 body하단에 두어 화면이 다 그려진 뒤 호출하는 것이 좋다.
     4. 반면 css는 화면을 그리는 역할이므로 head에서 불러 css가 적용된 화면을 볼 수 있게 한다.
     5. 추가로 bootstrap.js의 경우 제이쿼리가 꼭 있어야만 하기 때문에 부트스트랩보다 먼저 호출되도록 코드를 작성한다.    
+    
+* 스프링 시큐리티
+    1. 막강한 인증과 인가 기능을 가진 프레임워크
+    2. 스프링 기반의 애플리케이션에서는 보안을 위한 표준
+    3. 인터셉터, 필터 기반의 보안 기능을 구현하는 것보다 스프링 시큐리티를 통해 구현하는 것을 적극적으로 권장
+    
+* 스프링 시큐리티 Oauth2 클라이언트
+    1. 로그인 구현을 타 서비스에 맡기고 서비스 개발에 집중
+    2. 1.5 -> 2.0 으로 연동방법이 크게 바뀌었으나 spring-security-oauth2-autoconfigure 라이브러리를 통해 1.5에서 쓰던 설정을 그대로 사용할 수 있다.
+    3. 등록 방법
+        1. 구글 서비스 등록(구글 클라우드 플랫폼에서 새로운 프로젝트를 만들고 OAuth 클라이언트 ID를 생성하여 ID와 보안비밀을 받는다)
+        2. 프로젝트 내에 application-oauth.properties 에서 클라이언트 ID와 보안비밀을 등록한다.
+        3. application.properties에서 oauth를 설정한다.
+        4. application-oauth.properties의 값은 외부에 노출될 경우 언제든 개인정보를 가져갈 수 있는 취약점이 될 수 있으므로 gitignore에 등록하여 깃허브에 올라가는 것을 방지한다.
+        5. 위의 절차를 통해 구글의 로그인 인증정보를 발급 받았으니 프로젝트에 User, Repository 등을 추가한다. 
+
+* SecurityConfig 설정
+    1. csrf().disable().headers().frameOptions().disable() : h2 콘솔 화면을 사용하기 위해 해당 옵션들을 disable 합니다.
+    2. authorizeRequests (URL별 권한 관리를 설정하는 옵션의 시작점. 이것이 선언되어야만 antMatchers 옵션을 사용할 수 있다)
+    3. antMatchers (권한 관리 대상을 지정하는 옵션, URL, HTTP 메소드별로 관리 가능, permitAll 을 통해 전체 열람 권한)
+    4. anyRequest (설정된 값들 이외 나머지 URL, 여기서 authenticated를 통해 나머지 URL들은 모두 인증된 사용자들에게만 허용(인증된 사용자 = 로그인된 사용자))
+    5. logout(로그아웃 기능에 대한 설정)
+    6. oauth2Login (oauth2 로그인 기능에 대한 설정의 진입점)
+    7. userInfoEndpoint (Oauth2 로그인 성공 이후 사용자 정보를 가져올 때의 설정)
+    
     
 ## 오류 및 해결
 error: variable name not initialized in the default constructor private final String name (gradle 버전 문제, 5 -> 4로 다운 그레이드)
