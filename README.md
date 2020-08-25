@@ -11,6 +11,8 @@ gradlew wrapper --gradle-version 4.10.2
 * h2
 * mustache
 * oauth2
+* jdbc
+* security-test
 
 ## application.properties
 * src/main/resources 디렉토리 아래에 생성
@@ -19,7 +21,7 @@ gradlew wrapper --gradle-version 4.10.2
     3. spring.h2.console.enabled = true (웹 콘솔 옵션)
     4. spring.profiles.include = xxx (appication-xxx.properties 에서 적용한 값을 프로젝트에 설정한다)
     5. spring.security.oauth2.client.registration.google.scope = profile,email (기본 값은 profile,email,openid 여기서 openid가 적용 될 경우 OpenId Provider인 서비스 구글과 그렇지 않은 네이버 등 두가지로 나눠서 Oauth2Service를 만들어야 하기 때문에 하나로 만들기 위해 openid scope를 빼고 등록한다)
-
+    6. spring.session.store-type = jdbc (세션 저장소를 jdbc로 선택)
 
 ## Spring Boot Annotation
 주석이라는 사전적 의미를 가지고있으며 , 자바 코드에 주석처럼 사용하여 컴파일 또는 런타임에서 해석된다.
@@ -87,6 +89,10 @@ gradlew wrapper --gradle-version 4.10.2
     * @EnableWebSecurity
         * 스프링 시큐리티 설정들을 활성화 시켜줍니다.
      
+    * @WithMockUser(roles="USER")
+        1. 인증된 모의 사용자를 만들어서 사용합니다.
+        2. roles에 권한을 추가할 수 있습니다.
+        3. 즉, 이 어노테이션으로 인해 ROLE_USER 권한을 가진 사용자가 API를 요청하는 것과 동일한 효과를 가지게 됩니다.
     
     
 ## 개발 정리
@@ -217,6 +223,29 @@ gradlew wrapper --gradle-version 4.10.2
     6. oauth2Login (oauth2 로그인 기능에 대한 설정의 진입점)
     7. userInfoEndpoint (Oauth2 로그인 성공 이후 사용자 정보를 가져올 때의 설정)
     
+* 어노테이션 만들기
+    1. 세션값을 가져오는 SessionUser user = (SessionUser) httpSession.getAttribute("user") 부분을 어노테이션을 만들어 개선한다.
+    2. @interface 를 통해 이 파일을 어노테이션 클래스로 지정한다.
+    3. HandlerMethodArgumentResolver 인터페이스를 구현하여 조건에 맞는 경우 구현체가 지정한 값으로 해당 메소드의 파라미터를 넘길 수 있다.
+    4. supportsParameter에서 특정 파라미터를 지원하는지 판단하고 resolveArgument 에서 파라미터에 전달할 객체를 생성한다.
+    5. HandlerMethodArgumentResolver를 사용하려면 WebMvcConfigurer 를 구현하여 addArgumentResolvers가 있어야한다.
+    6. @LoginUser SessionUser 를 사용할 수 있게 된다.
+    
+* 세션 저장소
+    1. 기본적으로 세션은 WAS의 메모리(내장 톰캣의 메모리)에 저장된다. 그래서 애플리케이션을 재실행하면 항상 초기화가 된다.
+    2. 현업에서 사용되는 세션 저장소
+        * 톰캣 세션
+            1. 별다른 설정을 하지 않았을 때 기본적으로 선택되는 방식
+            2. 톰캣(WAS)에 세션이 저장되기 때문에 2대 이상의 WAS가 구동되는 환경에서는 톰캣들 간의 세션 공유를 위한 추가 설정이 필요
+        * MySQL과 같은 데이터베이스 세션
+            1. 여러 WAS간의 공용 세션을 사용할 수 있는 가장 쉬운 방법
+            2. 많은 설정이 필요 없지만 로그인 요청마다 DB IO가 발생하여 성능상 이슈가 발생할 수 있다
+            3. 보통 로그인 요청이 적은 백오피스, 사내 시스템 용도로 사용
+        * Redis, Memcached와 같은 메모리 DB 세션
+            1. B2C 서비스에서 가장 많이 사용하는 방식
+            2. 실제 서비스로 사용하기 위해서는 Embedded Redis와 같은 방식이 아닌 외부 메모리 서버가 필요
+
     
 ## 오류 및 해결
-error: variable name not initialized in the default constructor private final String name (gradle 버전 문제, 5 -> 4로 다운 그레이드)
+* error: variable name not initialized in the default constructor private final String name (gradle 버전 문제, 5 -> 4로 다운 그레이드)
+* org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException: NULL not allowed for column "EMAIL"; SQL statement: (ofNaver 에서 구글과 다르게 response 로 값을 받아 처리)
