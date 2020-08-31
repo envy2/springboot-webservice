@@ -245,7 +245,95 @@ gradlew wrapper --gradle-version 4.10.2
             1. B2C 서비스에서 가장 많이 사용하는 방식
             2. 실제 서비스로 사용하기 위해서는 Embedded Redis와 같은 방식이 아닌 외부 메모리 서버가 필요
 
+## AWS 서버 환경 구축 - AWS EC2
+* 클라우드(인터넷을 통해 서버,스토리지,데이터베이스,네트워크,모니터링 등의 서비스를 제공하는 것)
+    1. Infrastructure as a Service(IaaS)
+        1. 기존 물리 장비를 미들웨어와 함께 묶어둔 추상화 서비스
+        2. 가상머신, 스토리지, 네트워크, 운영체제 등의 IT 인프라를 대여해주는 서비스
+        3. AWS의 EC2,S3 등
+    2. Platform as a Service(PaaS)
+        1. IaaS에서 한번 더 추상화한 서비스
+        2. 좀 더 많은 기능이 자동화
+        3. AWS의 Beanstalk, Heroku 등
+    3. Software as a Service(SaaS)
+        1. 소프트웨어 서비스
+        2. 구글드라이브, 드랍박스, 와탭 등
+        
+* AWS 환경 설정
+    1. 회원가입 (AWS 공식 사이트에서 무료 계정 만들기)
+    2. EC2 인스턴스 생성(지역 변경: 오하이오 -> 서울)
+    3. 서비스에서 ec2 검색(인스턴스 시작: AMI 를 선택, 가상 머신에 운영체제를 설치할 때 구워넣는 이미지같은 것)
+    4. 인스턴스 세부 정보 구성(프리티어 기준 : 인스턴스 1개, 30GB)
+    5. 보안 그룹 설정
+        * SSH 는 pem키가 있어야만 접속이 가능하기 때문에 pem키를 절대 노출해서는 안된다
+        * IP또한 현재 접속한 IP에서만 설정, 다른 장소에 접속 할 경우 해당 장소의 IP를 다시 추가하는 것이 안전
+        * 일종의 마스터키로 EC2 서버에 접속 할 때 필수 파일이니 잘 관리할 수 있는 디렉토리에 저장
+    6. 고정 IP 주소 할당(탄력적 IP)
+        * 탄력적 IP를 할당 받아 EC2주소와 연결(작업 -> 주소 연결)
+        * 인스턴스 IP 확인을 통해 탄력적 IP가 잘 설정되었는지 확인
+        * 탄력적 IP는 생성하고 EC2서버에 연결하지 않으면 비용이 발생
+        * 즉, 생성한 탄력적 IP는 무조건 EC2에 바로 연결해야 하며 더 이상 사용할 인스턴스가 없을 때에는 탄력적 IP를 삭제해야 한다
+    7. 윈도우에서 putty 설치
+    8. puttygen.exe 에서 Conversions -> Import key를 통해 pem키를 ppk로 변환(Save Private Key)한다.
+    9. putty를 실행하여 Session 에서 HostName(ec2-user@탄력적IP주소)과 Port(22) 를 설정, 현재 설정을 Save하여 저장
+    10. putty 에서 Connection-SSH-Auth 에서 Browse.... 를 눌러 ppk파일을 로드
     
+* EC2 환경 설정
+    * Java 8 설치 : 현재 프로젝트와 맞는 버전을 설치해야한다. EC2 기본은 Java 7
+        1. sudo yum install -y java-1.8.00-openjdk-devel.x86_64
+        2. sudo /usr/sbin/alternatives --config java (2번 선택)
+        3. sudo yum remove java-1.7.0-openjdk
+        4. java --version
+    * 타임존 변경 : 기본 시간대가 모두 미국 시간이므로 한국 시간으로 변경
+        1. sudo rm /etc/localtime
+        2. sudo ln -s /usr/share/zoneinfo/Asia/Seoul /etc/localtime
+        3. date
+    * 호스트네임 변경 : IP 주소로 출력되는 서버의 이름을 별명으로 변경한다(수십 대의 서버가 작동할경우 IP만으로 어떤 서버인지 알 수가 없기 때문)
+        1. sudo vim /etc/sysconfig/network
+        2. HOSTNAME 부분을 별명으로 변경
+        3. sudo reboot
+        4. sudo vim /etc/hosts
+        5. 127.0.0.1 별명 (가장 아랫줄에 한줄 추가)
+        6. curl 별명(Could not resolve host = 실패, Failed to Connect to = 성공)
+            
+* AWS RDS 환경 설정
+    1. RDS 인스턴스 생성(검색창에 rds -> 데이터베이스 생성)
+    2. 사용 DB 및 프리티어, 스토리지, DB사용자 이름과 암호(DB에 접근할 때 사용), 퍼블릭 액세스 기능 설정
+    3. 필수 환경 설정
+        * 타임존
+            1. 파라미터 그룹 생성(동일한 DB버전을 설정)
+            2. 생성된 파라미터를 클릭하여 파라미터 편집을 통해 time_zone 을 Asia/Seoul 로 변경
+        * Character Set
+            1. 파라미터 편집에서 character_set_client,connection,database,filesystem,results,server 를 모두 utf8mb4로 변경
+            2. utf8과 utf8mb4의 차이는 이모티콘 저장 가능 여부(utf8mb4가 이모티콘 저장이 가능하다)
+        * Max Connection
+            1. 인스턴스 사양에 따라 자동으로 정해짐(보통 60)
+            2. max_connections 를 검색하여 좀 더 넉넉한 값으로 변경(150 정도)
+            3. 변경 사항 저장
+    4. 데이터베이스 항목에서 db를 선택하여 수정을 통해 DB 파라미터 그룹을 방금 만든 파라미터로 변경
+    5. 저장 후 반영 시점을 즉시 적용(예약일 경우 새벽 시간대에 진행)
+    6. 데이터베이스 작업 -> 재부팅
+    
+* PC에서 RDS 접속
+    1. RDS 세부정보 (DB명을 클릭)
+    2. VPC 보안 그룹의 값을 클릭하여 EC2 보안 그룹 항목으로 이동(ec2 와 관련된 그룹 ID를 복사)
+    3. RDS 세부정보에서 보안 그룹의 Inbound 항목을 클릭
+        1. 인바운드 추가(MYSQL/Aurora, 사용자 지정, 복사된 ID)
+        2. 현재 내 PC의 IP도 등록(MYSQL/Aurora, 내 IP)
+        3. 이렇게 하면 EC2와 RDS 간에 접근이 가능
+    4. 인텔리제이에서 Database 플러그인을 설치(Database Navigator)
+    5. Action에서 Database Browser를 실행
+    6. 플러스(+) 버튼을 클릭하여 MySQL 항목을 추가 RDS 접속 정보를 등록(이 때 Host는 RDS의 엔드포인트 주소)
+    7. Test Connection에서 successful 이 뜨면 성공, Apply - OK
+    8. Open SQL Console - New SQL Console 항목에서 새로운 콘솔창 생성(use DB명 실행 시 successfully 면 성공)
+    9. show variables like 'c%'; 을 통해 설정 확인
+    10. ALTER DATABASE 데이터베이스명 CHARACTER SET = 'utf8mb4' COLLATE = 'utf8mb4_general_ci'; 를 통해 설정 변경
+    11. select @@time_zone, now() 를 통해 타임존 확인
+    12. 마지막으로 테이블을 생성하고 insert 쿼리문을 실행하여 테스트
+    13. putty 에서 EC2에 ssh접속을 하여 sudo yum install mysql 설치
+    14. mysql -u 계정 -p -h Host주소(엔드포인트) 를 입력 후 패스워드 입력 - EC2에서 RDS로 접속
+    15. show databases; 를 통해 RDS가 맞는지 확인 
+
 ## 오류 및 해결
 * error: variable name not initialized in the default constructor private final String name (gradle 버전 문제, 5 -> 4로 다운 그레이드)
 * org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException: NULL not allowed for column "EMAIL"; SQL statement: (ofNaver 에서 구글과 다르게 response 로 값을 받아 처리)
