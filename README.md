@@ -334,6 +334,21 @@ gradlew wrapper --gradle-version 4.10.2
     14. mysql -u 계정 -p -h Host주소(엔드포인트) 를 입력 후 패스워드 입력 - EC2에서 RDS로 접속
     15. show databases; 를 통해 RDS가 맞는지 확인 
 
+* EC2로 프로젝트 배포
+    1. sudo yum install git
+    2. git --version
+    3. mkdir ~/app && mkdir ~/app/step1
+    4. cd ~/app/step1
+    5. git clone 깃주소
+    6. cd 프로젝트명
+    7. ./gradlew test(실패 시 git pull 또는 chmod +x ./gradlew 를 통해 권한 추가)
+    8. 배포 스크립트 작성(vim 편집기를 통해 배포와 관련된 명령어를 한번에 모아서 실행)
+    9. chomd +x 를 통해 배포 스크립트에 실행 권한 추가
+    10. 배포 스크립트 실행
+    11. vim nohup.out 을 통해 정상적인 실행이 되었는지 확인(실패할 경우 가장 하단에 에러 출력)
+    
+    
+    
 ## 오류 및 해결
 * error: variable name not initialized in the default constructor private final String name (gradle 버전 문제, 5 -> 4로 다운 그레이드)
 * org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException: NULL not allowed for column "EMAIL"; SQL statement: (ofNaver 에서 구글과 다르게 response 로 값을 받아 처리)
