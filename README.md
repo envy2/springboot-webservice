@@ -1,4 +1,4 @@
-# Springboot Webservice (2020.07.29 ~ )
+# Springboot Webservice (2020.07.29 ~ 2020.09.01)
 스프링 부트와 AWS로 혼자 구현하는 웹 서비스(책 따라하기)
 
 ## Terminal
@@ -12,7 +12,9 @@ gradlew wrapper --gradle-version 4.10.2
 * mustache
 * oauth2
 * jdbc
+* mariadb
 * security-test
+
 
 ## application.properties
 * src/main/resources 디렉토리 아래에 생성
@@ -352,3 +354,5 @@ gradlew wrapper --gradle-version 4.10.2
 ## 오류 및 해결
 * error: variable name not initialized in the default constructor private final String name (gradle 버전 문제, 5 -> 4로 다운 그레이드)
 * org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException: NULL not allowed for column "EMAIL"; SQL statement: (ofNaver 에서 구글과 다르게 response 로 값을 받아 처리)
+* EC2 서버에서 deploy.sh 파일을 실행시켰을 때 springframework.security.oauth2.client.registreation.ClientRegistreationRepository 와 관련된 에러가 출력 (application-oauth.properties 와 같은 중요 파일의 누락, 하지만 git을 통해 올릴 수는 없기 때문에 EC2에서 직접 추가해서 관리한다. 그 후 deploy.sh에서 -Dspring.config.location을 통해 설정 파일의 위치를 지정한다)
+* EC2에서 git clone을 통해 받은 파일을 build나 test를 통해 build파일이 추가되어 수정이 되었을 경우 git pull을 할 수가 없다. (병합이 불가능 하다는 메세지가 출력되어 삭제하고 git clone을 다시 함)
